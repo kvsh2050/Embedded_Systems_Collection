@@ -2,12 +2,20 @@ cpu ?= cortex-m3
 board ?= stm32vldiscovery
 
 .PHONY = qemu gdb compile clean objdump
+CFLAGS = -mcpu=$(cpu) -mthumb -g -ffreestanding -nostdlib
 
-compile:
-	arm-none-eabi-as -mthumb -mcpu=$(cpu) -g -c boot.S -o boot.o 
+start.s: start.c
+	arm-none-eabi-gcc -S -mthumb -mcpu=$(cpu) $< -o $@
 
-linking:
-	arm-none-eabi-ld -Tlink.ld boot.o -o boot.elf 
+
+start.o: start.c
+	arm-none-eabi-gcc -c -mthumb -mcpu=$(cpu) $< -o $@
+
+boot.o: boot.S
+	arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -ffreestanding -nostdlib boot.S -o boot.o
+
+boot.elf: boot.o start.o
+	arm-none-eabi-ld -T link.ld $^ -o $@
 
 objdump:
 	arm-none-eabi-objdump -S boot.o > boot.elf.lst
