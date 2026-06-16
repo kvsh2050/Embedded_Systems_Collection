@@ -1,0 +1,26 @@
+# ---- 1. Base image ----
+FROM ubuntu:24.04
+
+# ---- 2. Install sudo (and any other packages you need) ----
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends sudo && \
+    rm -rf /var/lib/apt/lists/*
+
+# ---- 3. Create the non‑root user & add to the sudo group ----
+RUN groupadd -r piyush && \
+    useradd -m -r -g piyush -s /bin/bash piyush && \
+    usermod -aG sudo piyush
+
+# ---- 4. Allow 'piyush' NOPASSWD sudo (optional but handy for CI) ----
+RUN echo "piyush ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/piyush && \
+    chmod 0440 /etc/sudoers.d/piyush
+
+# ---- 5. Working directory ----
+WORKDIR /home/piyush
+
+# ---- 6. Switch to the non‑root user ----
+USER piyush
+
+# ---- 7. Default command (replace if you need something else) ----
+CMD ["bash"]
+
